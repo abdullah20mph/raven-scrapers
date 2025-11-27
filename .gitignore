@@ -7,6 +7,9 @@ event_htmls/
 *.html
 ra_events_*.json
 ra_events_detailed_*.json
+dice_events*.json
+dice_page*.png
+dice_page*.html
 
 # Logs
 *.log
