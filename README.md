@@ -3,6 +3,7 @@
 Powerful Node.js scrapers for fetching event listings from multiple platforms:
 - 🎵 [Resident Advisor (ra.co)](https://ra.co)
 - 🎲 [Dice.fm](https://dice.fm)
+- 🎯 [Shotgun.live](https://shotgun.live)
 
 All scrapers use Puppeteer with stealth mode to bypass bot detection.
 
@@ -23,6 +24,7 @@ All scrapers use Puppeteer with stealth mode to bypass bot detection.
 - [Usage](#usage)
   - [Resident Advisor Scraper](#resident-advisor-scraper)
   - [Dice.fm Scraper](#dicefm-scraper)
+  - [Shotgun.live Scraper](#shotgunlive-scraper)
 - [Output Format](#output-format)
 - [Customization](#customization)
 - [Project Structure](#project-structure)
@@ -169,6 +171,87 @@ This will:
 📁 HTML files saved in dice_event_htmls/ directory
 ```
 
+---
+
+### Shotgun.live Scraper
+
+#### 1. Basic Event List Scraping
+
+Get a list of events from Shotgun.live:
+
+```bash
+node shotgun_scraper.mjs
+```
+
+This will:
+- Scrape the NYC events page on Shotgun.live
+- Automatically click "View More" button to load events until December 1st (or target date)
+- Extract event titles, venues, dates, times, prices, and genres
+- Save results to `shotgun_events.json`
+
+**Example Output:**
+```
+🎯 Shotgun.live Events Scraper
+==================================================
+🌐 Target: https://shotgun.live/en/cities/new-york
+📅 Scraping events until: 2025-12-01
+
+🔄 Clicking "View More" to load all events...
+   ✅ Found button: "View more"
+   🖱️  Click 1: Clicked button
+   📅 Last event date visible: Thu 27 Nov
+   ...
+   ✅ Reached December 4. Target date reached!
+
+✅ Extracted 139 events
+💾 Saved events to shotgun_events.json
+```
+
+#### 2. Detailed Event Scraping
+
+Get comprehensive information from each Shotgun.live event page:
+
+```bash
+node shotgun_detailed_scraper.mjs
+```
+
+This will:
+- Read the existing `shotgun_events.json` file
+- Visit each event URL (first 5 by default)
+- Extract comprehensive details including:
+  - Full event description
+  - Artists and lineup
+  - Genres
+  - Age restrictions
+  - Venue name and full address with coordinates
+  - Organizer/promoter
+  - Start, end, and door times
+  - Ticket types and pricing
+  - Social media links
+  - Structured JSON-LD data
+- Save full HTML for each event
+- Create enhanced JSON with all details
+
+**Example Output:**
+```
+🎯 Shotgun.live Event Details Scraper
+==================================================
+📂 Reading shotgun_events.json...
+✅ Loaded 139 events
+🧪 Testing with first 5 events
+
+[1/5] Aftermath Thursday Morning Edition Diego Garcia & Friends
+   🌐 Loading https://shotgun.live/en/events/...
+   🔍 Extracting detailed data...
+   ✅ Extracted!
+      Artists: DiegoGarcia
+      Age: 21+
+      Venue: 20 Meadow Street, Brooklyn, NY 11206, USA
+
+💾 Saved 5 detailed events to shotgun_events_detailed.json
+📁 HTML files saved in shotgun_event_htmls/ directory
+```
+
 ## 📊 Output Format
 
 ### Resident Advisor - Basic Event Data
@@ -263,6 +346,65 @@ This will:
 }
 ```
 
+### Shotgun.live - Basic Event Data
+
+```json
+{
+  "id": 0,
+  "title": "Aftermath Thursday Morning Edition Diego Garcia & Friends",
+  "venue": "Aftermath",
+  "date": "Thu, Nov 27",
+  "time": "3:00 AM",
+  "price": "$19.95",
+  "genres": ["House", "Afro House", "Deep House"],
+  "imageUrl": "https://res.cloudinary.com/shotgun/...",
+  "url": "https://shotgun.live/en/events/aftermaththursdaymorning...",
+  "rawHTML": "<a data-slot=\"tracked-link\" href=\"/en/events/...>"
+}
+```
+
+### Shotgun.live - Detailed Event Data
+
+```json
+{
+  "id": 0,
+  "title": "Aftermath Thursday Morning Edition Diego Garcia & Friends",
+  "...": "... basic info ...",
+  "detailedInfo": {
+    "description": "Studio Club NYC Presents Aftermath...",
+    "fullDescription": "Complete event description with all details...",
+    "lineup": "Artist lineup information...",
+    "artists": ["DiegoGarcia"],
+    "genres": ["House", "Afro House", "Deep House"],
+    "ageRestriction": "21+",
+    "venueName": "20 Meadow Street, Brooklyn, NY 11206, USA",
+    "addressDetails": "Full venue address",
+    "organizer": "Newyork Rave",
+    "startTime": "2025-11-27T08:00:00.000Z",
+    "endTime": "2025-11-27T15:00:00.000Z",
+    "doorTime": "4:30AM",
+    "latitude": 40.71234,
+    "longitude": -73.95678,
+    "imageUrl": "https://res.cloudinary.com/shotgun/...",
+    "ticketTypes": [
+      {
+        "name": "General Admission",
+        "price": "19.95",
+        "currency": "USD",
+        "availability": "https://schema.org/InStock"
+      }
+    ],
+    "socialLinks": {
+      "instagram": "https://instagram.com/...",
+      "facebook": "https://facebook.com/...",
+      "spotify": "https://open.spotify.com/..."
+    },
+    "structuredData": {...},
+    "htmlSaved": "shotgun_event_htmls/event_0.html"
+  }
+}
+```
+
 ## 🔧 Customization
 
 ### Resident Advisor - Change City/Area
@@ -302,9 +444,34 @@ const url = 'https://dice.fm/events/los-angeles';    // LA
 const url = 'https://dice.fm/events/chicago';        // Chicago
 ```
 
+### Shotgun.live - Change City
+
+Edit the URL in `shotgun_scraper.mjs`:
+
+```javascript
+// Examples:
+const url = 'https://shotgun.live/en/cities/new-york';     // NYC
+const url = 'https://shotgun.live/en/cities/london';       // London
+const url = 'https://shotgun.live/en/cities/berlin';       // Berlin
+const url = 'https://shotgun.live/en/cities/los-angeles';  // LA
+const url = 'https://shotgun.live/en/cities/paris';        // Paris
+```
+
+### Shotgun.live - Change Target Date
+
+Edit the target date in `shotgun_scraper.mjs`:
+
+```javascript
+// Default: December 1st
+const targetDate = '2025-12-01';
+
+// Change to any date:
+const targetDate = '2025-12-31';  // New Year's Eve
+```
+
 ### Process All Events (Not Just First 5)
 
-In `scrape_event_details.mjs` or `dice_detailed_scraper.mjs`, change:
+In `scrape_event_details.mjs`, `dice_detailed_scraper.mjs`, or `shotgun_detailed_scraper.mjs`, change:
 
 ```javascript
 // From:
@@ -322,13 +489,17 @@ raven-scrapers/
 ├── scrape_event_details.mjs    # RA: Detailed scraper for individual events
 ├── dice_scraper.mjs            # Dice.fm: Main scraper for event lists
 ├── dice_detailed_scraper.mjs   # Dice.fm: Detailed scraper for individual events
+├── shotgun_scraper.mjs         # Shotgun: Main scraper for event lists
+├── shotgun_detailed_scraper.mjs # Shotgun: Detailed scraper for individual events
 ├── package.json                # Project dependencies
 ├── .gitignore                  # Git ignore rules
 ├── README.md                   # This file
 ├── event_htmls/                # RA generated HTML files (gitignored)
 ├── dice_event_htmls/           # Dice.fm generated HTML files (gitignored)
+├── shotgun_event_htmls/        # Shotgun generated HTML files (gitignored)
 ├── ra_events_*.json           # RA generated JSON files (gitignored)
-└── dice_events*.json          # Dice.fm generated JSON files (gitignored)
+├── dice_events*.json          # Dice.fm generated JSON files (gitignored)
+└── shotgun_events*.json       # Shotgun generated JSON files (gitignored)
 ```
 
 ## 🔍 How It Works
@@ -357,6 +528,28 @@ raven-scrapers/
    - Saves full HTML for each event
    - Builds comprehensive event records with timestamps, coordinates, and ticket info
 
+### Shotgun.live Scraper
+
+1. **Stealth Mode**: Uses `puppeteer-extra-plugin-stealth` to avoid Shotgun.live's bot detection.
+
+2. **Smart "View More" Clicking**: Automatically clicks the "View More" button to progressively load events until the target date is reached.
+
+3. **Date Detection**: Monitors the last visible event date and stops loading when December 1st (or target date) is reached.
+
+4. **Advanced Data Extraction**: 
+   - Parses event cards to extract titles, venues, dates, times, prices, and genres
+   - Uses pattern matching to identify venue names from common NYC venues
+   - Extracts genre tags automatically
+
+5. **Detailed Scraping**: For each event:
+   - Parses JSON-LD structured data (schema.org format) for clean information
+   - Extracts full event descriptions, lineups, and artist information
+   - Captures venue details with coordinates
+   - Identifies organizers, age restrictions, and door times
+   - Extracts ticket types and pricing tiers
+   - Saves full HTML for each event
+   - Builds comprehensive event records with all available metadata
+
 ## 📦 Dependencies
 
 - **puppeteer** - Headless Chrome browser automation
@@ -383,6 +576,7 @@ ISC
 
 - [Resident Advisor](https://ra.co) for being the best electronic music events platform
 - [Dice.fm](https://dice.fm) for making event discovery easy
+- [Shotgun.live](https://shotgun.live) for connecting people with amazing events
 - [Puppeteer](https://pptr.dev/) for browser automation
 - [puppeteer-extra-plugin-stealth](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth) for stealth capabilities
 
